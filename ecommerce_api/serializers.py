@@ -46,7 +46,7 @@ class OrderSerializer(serializers.ModelSerializer):
         return order
 
     def update(self, instance, valdiate_date):
-        order_details_data = valdiate_date.pop('order_details')
+        order_details_data = valdiate_date.pop('order_details') if 'order_details' in valdiate_date.keys() else []
         order_details = list(instance.order_details.all())
         order = super().update(instance, valdiate_date)
         order_details_updated = []

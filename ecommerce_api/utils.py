@@ -17,3 +17,13 @@ class ProductUtil:
             products.append(prod_and_cant['product'])
 
         Product.objects.bulk_update(products, ['stock'])
+
+class OrderValidationUtil:
+
+    @staticmethod
+    def validate_stock(prod_and_cants):
+        return not(any([prod_and_cant['product'].get_stock() < prod_and_cant['cuantity'] for prod_and_cant in prod_and_cants]))
+
+    @staticmethod
+    def validate_duplicate_products(product_list):
+        return len(product_list) == len(set(product_list))
