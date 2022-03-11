@@ -5,6 +5,10 @@ from rest_framework import serializers
 
 from ecommerce_api.models import Product, Order, OrderDetail
 
+###################################
+#      Products Serializers       #
+###################################
+
 class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -23,6 +27,11 @@ class ProductStockSerializer(serializers.ModelSerializer):
         model = Product
         fields = ['stock']
 
+
+############################################
+#     OrderDetailSerializer Serializers    #
+############################################
+
 class OrderDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -30,13 +39,18 @@ class OrderDetailSerializer(serializers.ModelSerializer):
         #depth = 1
         exclude = ['order']
 
+
+###################################
+#       Order Serializers         #
+###################################
+
 class OrderSerializer(serializers.ModelSerializer):
     order_details = OrderDetailSerializer(many=True)
 
     class Meta:
         model = Order
         fields = '__all__'
-    
+
     def create(self, valdiate_date):
         order_details_data = valdiate_date.pop('order_details')
         order = super().create(valdiate_date)
@@ -66,6 +80,16 @@ class OrderListSerializer(serializers.ModelSerializer):
         model = Order
         fields = '__all__'
 
+class OrderPaySerializer(serializers.ModelSerializer):
+    total_to_pay = serializers.SerializerMethodField()
     
-    
+    class Meta:
+        model = Order
+        fields = ('total_to_pay',)
+
+    def get_total_to_pay(self, order):
+        divisa = self.context['request'].GET.get('divisa')
+        if divisa == 'usd':
+            return order.get_total_usd()
+        return order.get_total()
     

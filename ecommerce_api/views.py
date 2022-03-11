@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from ecommerce_api.models import Order, OrderDetail, Product
 from ecommerce_api.utils import ProductUtil, OrderValidationUtil
 from ecommerce_api.serializers import ProductSerializer, ProductUpdateSerializer, ProductStockSerializer, OrderListSerializer,\
-                                        OrderSerializer
+                                        OrderSerializer, OrderPaySerializer
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
@@ -38,13 +38,15 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
-
+    
     def get_queryset(self):
         return self.queryset
 
     def get_serializer_class(self):
         if (self.action in ['list']):
             return OrderListSerializer
+        elif (self.action == 'total_to_pay'):
+            return OrderPaySerializer
         else:
             return OrderSerializer
 
@@ -89,7 +91,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             # y cuantity el valor. Estos nos facilitaracomparar los stock anteriores respecto a los nuevos
             order_detail_news = {order_detail['id']:order_detail['cuantity'] for order_detail in request.data['order_details']}
             order_detail_olds = order_details = OrderDetail.objects.filter(pk__in=order_detail_news.keys()).select_related('product')
-            #Armomos prod_and_cants para realizar las validaciones y actualizaciones. Para la validacion obtenemos el stock necesario para cada
+            #Armamos prod_and_cants para realizar las validaciones y actualizaciones. Para la validacion obtenemos el stock necesario para cada
             #producto haciendo  new_stock - old_stock. Si tenemos valores positivos necesitamos stock, caso contrario no. 
             prod_and_cants = [{"product":order_detail.product, "cuantity":(order_detail_news[order_detail.id] - order_detail.cuantity)} for order_detail in order_detail_olds]
             #Validamos
@@ -102,5 +104,12 @@ class OrderViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
 
         return Response(serializer.data)
+
+    @action(methods=['GET'], detail=True)
+    def total_to_pay(self, request, pk=None):
+        order = self.get_object()
+        serializer = self.get_serializer_class()(order, context={'request':request})
+        return Response(serializer.data,status=status.HTTP_200_OK)
+
 
   
