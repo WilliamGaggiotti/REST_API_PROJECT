@@ -13,7 +13,7 @@ from ecommerce_api.serializers import ProductSerializer, ProductUpdateSerializer
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
-    #serializer_class = ProductSerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         return self.queryset
@@ -104,12 +104,6 @@ class OrderViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
 
         return Response(serializer.data)
-
-    # @action(methods=['GET'], detail=True)
-    # def total_to_pay(self, request, pk=None):
-    #     order = self.get_object()
-    #     serializer = self.get_serializer_class()(order, context={'request':request})
-    #     return Response(serializer.data,status=status.HTTP_200_OK)
 
 
   

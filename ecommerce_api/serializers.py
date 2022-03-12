@@ -87,17 +87,3 @@ class OrderListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
-
-# class OrderPaySerializer(serializers.ModelSerializer):
-#     total_to_pay = serializers.SerializerMethodField()
-    
-#     class Meta:
-#         model = Order
-#         fields = ('total_to_pay',)
-
-#     def get_total_to_pay(self, order):
-#         divisa = self.context['request'].GET.get('divisa')
-#         if divisa == 'usd':
-#             return order.get_total_usd()
-#         return order.get_total()
-    
