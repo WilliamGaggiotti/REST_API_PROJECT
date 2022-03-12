@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from ecommerce_api.models import Order, OrderDetail, Product
 from ecommerce_api.utils import ProductUtil, OrderValidationUtil
 from ecommerce_api.serializers import ProductSerializer, ProductUpdateSerializer, ProductStockSerializer, OrderListSerializer,\
-                                        OrderSerializer
+                                    OrderRetrieveSerializer, OrderSerializer
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
@@ -45,8 +45,10 @@ class OrderViewSet(viewsets.ModelViewSet):
         return self.queryset
 
     def get_serializer_class(self):
-        if (self.action in ['list']):
+        if (self.action == 'list'):
             return OrderListSerializer
+        elif (self.action == 'retrieve'):
+            return OrderRetrieveSerializer
         else:
             return OrderSerializer
 

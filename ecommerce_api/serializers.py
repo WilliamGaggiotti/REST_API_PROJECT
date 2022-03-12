@@ -44,7 +44,7 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 #       Order Serializers         #
 ###################################
 
-class OrderSerializer(serializers.ModelSerializer):
+class OrderRetrieveSerializer(serializers.ModelSerializer):
     order_details = OrderDetailSerializer(many=True)
     total_to_pay = serializers.SerializerMethodField()
 
@@ -58,6 +58,13 @@ class OrderSerializer(serializers.ModelSerializer):
         if divisa == 'usd':
             return order.get_total_usd()
         return order.get_total()
+
+class OrderSerializer(serializers.ModelSerializer):
+    order_details = OrderDetailSerializer(many=True)
+    
+    class Meta:
+        model = Order
+        fields = '__all__'
 
     def create(self, valdiate_date):
         order_details_data = valdiate_date.pop('order_details')
