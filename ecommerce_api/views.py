@@ -4,11 +4,12 @@ from multiprocessing import context
 from rest_framework import viewsets, status, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 from ecommerce_api.models import Order, OrderDetail, Product
 from ecommerce_api.utils import ProductUtil, OrderValidationUtil
 from ecommerce_api.serializers import ProductSerializer, ProductUpdateSerializer, ProductStockSerializer, OrderListSerializer,\
-                                        OrderSerializer, OrderPaySerializer
+                                        OrderSerializer
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
@@ -38,6 +39,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
+    permission_classes = (IsAuthenticated,)
     
     def get_queryset(self):
         return self.queryset
@@ -45,8 +47,6 @@ class OrderViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if (self.action in ['list']):
             return OrderListSerializer
-        elif (self.action == 'total_to_pay'):
-            return OrderPaySerializer
         else:
             return OrderSerializer
 
@@ -105,11 +105,11 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
-    @action(methods=['GET'], detail=True)
-    def total_to_pay(self, request, pk=None):
-        order = self.get_object()
-        serializer = self.get_serializer_class()(order, context={'request':request})
-        return Response(serializer.data,status=status.HTTP_200_OK)
+    # @action(methods=['GET'], detail=True)
+    # def total_to_pay(self, request, pk=None):
+    #     order = self.get_object()
+    #     serializer = self.get_serializer_class()(order, context={'request':request})
+    #     return Response(serializer.data,status=status.HTTP_200_OK)
 
 
   

@@ -46,10 +46,18 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     order_details = OrderDetailSerializer(many=True)
+    total_to_pay = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = '__all__'
+        only_read_fields = ('total_to_pay',)
+
+    def get_total_to_pay(self, order):
+        divisa = self.context['request'].GET.get('divisa')
+        if divisa == 'usd':
+            return order.get_total_usd()
+        return order.get_total()
 
     def create(self, valdiate_date):
         order_details_data = valdiate_date.pop('order_details')
@@ -80,16 +88,16 @@ class OrderListSerializer(serializers.ModelSerializer):
         model = Order
         fields = '__all__'
 
-class OrderPaySerializer(serializers.ModelSerializer):
-    total_to_pay = serializers.SerializerMethodField()
+# class OrderPaySerializer(serializers.ModelSerializer):
+#     total_to_pay = serializers.SerializerMethodField()
     
-    class Meta:
-        model = Order
-        fields = ('total_to_pay',)
+#     class Meta:
+#         model = Order
+#         fields = ('total_to_pay',)
 
-    def get_total_to_pay(self, order):
-        divisa = self.context['request'].GET.get('divisa')
-        if divisa == 'usd':
-            return order.get_total_usd()
-        return order.get_total()
+#     def get_total_to_pay(self, order):
+#         divisa = self.context['request'].GET.get('divisa')
+#         if divisa == 'usd':
+#             return order.get_total_usd()
+#         return order.get_total()
     
