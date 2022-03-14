@@ -8,8 +8,8 @@ import requests
 class Product(models.Model):
     id = models.CharField(max_length=255, primary_key=True)
     name = models.CharField(max_length=50)
-    price = models.FloatField()
-    stock = models.DecimalField(max_digits=7, decimal_places=2)
+    price = models.FloatField()#(max_digits=7, decimal_places=2)
+    stock = models.IntegerField()
 
     class Meta:
         ordering = ['id']
@@ -32,9 +32,12 @@ class Order(models.Model):
     class Meta:
         ordering = ['id']
 
+    def get_id(self):
+        return self.id
+
     def get_total(self):
         order_details = OrderDetail.objects.filter(order=self.id).select_related('product')
-
+        
         return reduce(lambda a, b: (a.get_cuantity() * a.product.get_price()) + (b.get_cuantity() * b.product.get_price()), order_details)
 
     def get_total_usd(self):
@@ -63,3 +66,6 @@ class OrderDetail(models.Model):
 
     def get_product(self):
         return self.product
+
+    def get_id(self):
+        return self.id

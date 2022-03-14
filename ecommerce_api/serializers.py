@@ -36,10 +36,8 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderDetail
-        #depth = 1
         exclude = ['order']
-
-
+   
 ###################################
 #       Order Serializers         #
 ###################################
@@ -51,7 +49,7 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
-        only_read_fields = ('total_to_pay',)
+        only_read_fields = ('total_to_pay')
 
     def get_total_to_pay(self, order):
         divisa = self.context['request'].GET.get('divisa')
@@ -65,6 +63,7 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
+        #only_read_fields = ['id']
 
     def create(self, valdiate_date):
         order_details_data = valdiate_date.pop('order_details')
@@ -94,3 +93,19 @@ class OrderListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
+
+class OrderAddDetailSerializer(serializers.ModelSerializer):
+    order_details = OrderDetailSerializer(many=True)
+    
+    class Meta:
+        model = Order
+        fields = ('order_details',)
+
+    def create(self, valdiate_date):
+        for order_detail_data in valdiate_date['order_details']:
+            OrderDetail.objects.create(order_id=self.context['order'], **order_detail_data)
+
+        return Order.objects.get(pk=self.context['order'])
+
+class OrderRemoveDetailSerializer(serializers.Serializer):
+    order_detail_ids = serializers.ListField()

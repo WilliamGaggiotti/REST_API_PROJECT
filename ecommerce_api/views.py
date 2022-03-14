@@ -9,7 +9,8 @@ from rest_framework.permissions import IsAuthenticated
 from ecommerce_api.models import Order, OrderDetail, Product
 from ecommerce_api.utils import ProductUtil, OrderValidationUtil
 from ecommerce_api.serializers import ProductSerializer, ProductUpdateSerializer, ProductStockSerializer, OrderListSerializer,\
-                                    OrderRetrieveSerializer, OrderSerializer
+                                    OrderRetrieveSerializer, OrderSerializer, OrderDetailSerializer, OrderAddDetailSerializer, \
+                                        OrderRemoveDetailSerializer
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
@@ -49,6 +50,10 @@ class OrderViewSet(viewsets.ModelViewSet):
             return OrderListSerializer
         elif (self.action == 'retrieve'):
             return OrderRetrieveSerializer
+        elif (self.action =='add_order_details'):
+            return OrderAddDetailSerializer
+        elif (self.action == 'remove_order_details'):
+            return OrderRemoveDetailSerializer
         else:
             return OrderSerializer
 
@@ -66,6 +71,8 @@ class OrderViewSet(viewsets.ModelViewSet):
             ProductUtil.update_product_stock(order_details, -1)
             self.perform_create(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def destroy(self, request, pk=None):
         order = self.get_object()
@@ -74,7 +81,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         #Actualizamos el stock de los productos
         ProductUtil.update_product_stock(prod_and_cants)
         self.perform_destroy(order)
-        return Response('Orden eliminada exitosamente.', status=status.HTTP_200_OK)
+        return Response('Orden eliminada exitosamente.', status=status.HTTP_204_NO_CONTENT)
 
 
     def update(self, request, *args, **kwargs):
@@ -106,6 +113,41 @@ class OrderViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
 
         return Response(serializer.data)
+
+    @action(methods=['POST'], detail=True)
+    def add_order_details(self, request, pk=None):
+        order = self.get_object()
+        serializer = self.get_serializer_class()(data=request.data, context={"order":pk})
+        if serializer.is_valid():
+            order_details = serializer.validated_data['order_details']
+            #Validamos
+            if not(OrderValidationUtil.validate_stock(order_details)):
+                raise serializers.ValidationError('No hay stock disponible de algunos de los productos solicitados')
+
+            if not(OrderValidationUtil.validate_duplicate_products([order_detail['product'] for order_detail in order_details])):
+                raise serializers.ValidationError('No se puede crear una orden con productos repetidos')
+
+            #Actualizamos el stock de los productos
+            ProductUtil.update_product_stock(order_details, -1)
+
+            self.perform_create(serializer)
+            return Response(serializer.data,status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['POST'], detail=True)
+    def remove_order_details(self, request, pk=None):
+        serializer = self.get_serializer_class()(data=request.data)
+        if serializer.is_valid():
+            order_details = OrderDetail.objects.filter(order_id=pk, pk__in=serializer.data['order_detail_ids']).select_related('product')
+            prod_and_cants = [ {"product":order_detail.product, "cuantity":order_detail.cuantity}for order_detail in order_details]
+            
+            #Actualizamos el stock de los productos
+            ProductUtil.update_product_stock(prod_and_cants)
+            order_details.delete()
+            return Response('Detalles eliminados exitosamente.', status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
   
