@@ -38,7 +38,8 @@ class Order(models.Model):
     def get_total(self):
         order_details = OrderDetail.objects.filter(order=self.id).select_related('product')
         
-        return reduce(lambda a, b: (a.get_cuantity() * a.product.get_price()) + (b.get_cuantity() * b.product.get_price()), order_details)
+        #return reduce(lambda a, b: (a.get_cuantity() * a.product.get_price()) + (b.get_cuantity() * b.product.get_price()), order_details)
+        return sum([order_detail.get_cuantity() * order_detail.product.get_price() for order_detail in order_details])
 
     def get_total_usd(self):
         requests_api = requests.get('https://www.dolarsi.com/api/api.php?type=valoresprincipales')

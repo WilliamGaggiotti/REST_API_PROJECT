@@ -14,14 +14,12 @@ User = get_user_model()
 class ProductViewTestCase(TestCase):
     
     def setUp(self):
-        client = APIClient()
 
+        client = APIClient()
         user =  User.objects.create(username='user_tests', email='user_test@sda.com')
         user.set_password("acscd15a")
         user.save()
         self.user = user
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
 
         user = {
             "username":"user_tests",
@@ -35,6 +33,10 @@ class ProductViewTestCase(TestCase):
         )
 
         result = json.loads(response.content)
+        token = result['access']
+        self.client = APIClient()
+        #self.client.force_authenticate(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
 
         # Creo un objeto en la base de datos para trabajar con datos
         self.product = Product.objects.create(
@@ -58,9 +60,8 @@ class ProductViewTestCase(TestCase):
             test_product,
             format='json'
         )
-
-        result = json.loads(response.content)
         
+        result = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual('test_id_c', result['id'])
         self.assertEqual('test_product_c', result['name'])
@@ -173,14 +174,12 @@ class ProductViewTestCase(TestCase):
 class OrderViewTestCase(TestCase):
     
     def setUp(self):
-        client = APIClient()
 
+        client = APIClient()
         user =  User.objects.create(username='user_tests', email='user_test@sda.com')
         user.set_password("acscd15a")
         user.save()
         self.user = user
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
 
         user = {
             "username":"user_tests",
@@ -194,6 +193,10 @@ class OrderViewTestCase(TestCase):
         )
 
         result = json.loads(response.content)
+        token = result['access']
+        self.client = APIClient()
+        #self.client.force_authenticate(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
 
         # Creo un objeto en la base de datos para trabajar con datos
         self.product_1 = Product.objects.create(
