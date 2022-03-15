@@ -1,4 +1,7 @@
 # Ecommerce API
+
+This is a basic API for an eCommerce
+
 ## _Installation and Configuration_
 
 ####  _Install virtual environment (optional)_
